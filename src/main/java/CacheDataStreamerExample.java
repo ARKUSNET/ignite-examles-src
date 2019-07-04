@@ -57,3 +57,4 @@ public class CacheDataStreamerExample {
 //entryMapToBeStreamed.entrySet().parallelStream().forEach(dataStreamer::addData);
 //https://www.baeldung.com/apache-ignite
 //https://ignite.apache.org/features/streaming.html
+//https://www.youtube.com/channel/UCyFIhiuxO_YGBblieHpe90Q
