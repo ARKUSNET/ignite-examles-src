@@ -1,4 +1,15 @@
 import org.apache.ignite.*;
+import org.apache.ignite.internal.util.future.GridFutureAdapter;
+import org.apache.ignite.internal.util.future.IgniteFutureImpl;
+import org.apache.ignite.lang.IgniteFuture;
+import org.apache.ignite.lang.IgniteInClosure;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CacheDataStreamerExample {
     /** Cache name. */
@@ -25,7 +36,10 @@ public class CacheDataStreamerExample {
 
             // Auto-close cache at the end of the example.
             try (IgniteCache<Integer, String> cache = ignite.getOrCreateCache(CACHE_NAME)) {
+
+
                 long start = System.currentTimeMillis();
+
 
                 try (IgniteDataStreamer<Integer, String> stmr = ignite.dataStreamer(CACHE_NAME)) {
                     // Configure loader.
@@ -43,6 +57,27 @@ public class CacheDataStreamerExample {
 
                 long end = System.currentTimeMillis();
 
+                ExecutorService executor = ignite.executorService();
+
+                List<Callable<Integer>> callables =  new ArrayList<>();
+
+                final IgniteFuture<String> promise = new IgniteFutureImpl<>(new GridFutureAdapter<String>());
+
+                cache.getAsync(5).listen(new IgniteInClosure<IgniteFuture<String>>() {
+                    @Override public void apply(IgniteFuture<String> f) {
+                        String val = f.get();
+
+                        if (val != null) {
+                            System.out.println("Completed by get: " + 5);
+
+                            (((GridFutureAdapter)((IgniteFutureImpl)promise).internalFuture())).onDone("by get");
+                        }
+                    }
+                });
+
+                System.out.println(promise);
+
+
                 System.out.println(">>> Loaded " + ENTRY_COUNT + " keys in " + (end - start) + "ms.");
             }
             finally {
@@ -58,3 +93,5 @@ public class CacheDataStreamerExample {
 //https://www.baeldung.com/apache-ignite
 //https://ignite.apache.org/features/streaming.html
 //https://www.youtube.com/channel/UCyFIhiuxO_YGBblieHpe90Q
+//https://github.com/PacktPublishing/Apache-Ignite-Quick-Start-Guide
+//https://play.google.com/books/reader?id=hC59DwAAQBAJ&hl=ru&pg=GBS.ZZ0
